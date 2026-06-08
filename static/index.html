@@ -1,12 +1,22 @@
-
+<script>
 async function search() {
   const q = document.getElementById("q").value;
 
-  const res = await fetch(`/search?q=${q}`);
-  const data = await res.json();
+  try {
+    const res = await fetch(`/search?q=${q}`);
+    const data = await res.json();
 
-  document.getElementById("out").innerText =
-    data.answer +
-    "\n\nPTT:\n" + data.ptt.join("\n") +
-    "\n\nReddit:\n" + data.reddit.join("\n");
+    console.log("API data:", data);
+
+    document.getElementById("out").innerText =
+      data.answer +
+      "\n\nPTT:\n" + (data.ptt || []).join("\n") +
+      "\n\nReddit:\n" + (data.reddit || []).join("\n");
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("out").innerText =
+      "❌ API error，請打開 Console 看錯誤";
+  }
 }
+</script>
