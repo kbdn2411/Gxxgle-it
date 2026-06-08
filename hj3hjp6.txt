@@ -1,0 +1,35 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from sentence_transformers import SentenceTransformer
+import numpy as np
+import faiss
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
+
+texts = [
+    "Google怎麼用？先打開搜尋引擎",
+    "你現在就在用還問",
+    "笑死這也要問",
+    "PTT用瀏覽器啊",
+    "不會google嗎"
+]
+
+emb = model.encode(texts)
+
+index = faiss.IndexFlatL2(len(emb[0]))
+index.add(np.array(emb))
+
+@app.get("/search")
+def search(q: str):
+    qv = model.encode([q])
+    D, I = index.search(np.array(qv), 3)
+    return {"results":[texts[i] for i in I[0]]}
