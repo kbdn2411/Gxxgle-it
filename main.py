@@ -1,134 +1,73 @@
-import re
+from fastapi import FastAPI
 import random
 
-# ======================
-# 亂輸入判斷
-# ======================
-def is_messy_input(q: str) -> bool:
-    q = q.strip()
-
-    if len(q) <= 1:
-        return True
-
-    if re.fullmatch(r"[^\u4e00-\u9fffA-Za-z0-9]+", q):
-        return True
-
-    if len(set(q)) <= 2 and len(q) > 3:
-        return True
-
-    gibberish = ["asdf", "qwe", "zxc", "jkl", "ㄅㄆㄇ"]
-    if any(g in q.lower() for g in gibberish):
-        return True
-
-    return False
-
+app = FastAPI()
 
 # ======================
-# 政治判斷（完整語意版）
+# 🔥 回答資料庫（你可以一直擴充）
 # ======================
-def is_politics(q: str) -> bool:
-    qn = re.sub(r"\s+", "", q)
 
-    keywords = [
-        "政府", "選舉", "總統", "立委", "市長", "縣長",
-        "政策", "政治", "政黨", "內閣",
-        "立法院", "行政院",
+copypasta_pool = [
+    "我已經看過太多次這種問題了，答案永遠一樣，但人類還是會問。",
+    "你以為你在問問題，其實你只是重複歷史。",
+    "這世界沒有標準答案，只有重複的錯誤。",
+    "我不是不想回答，我是已經回答過太多次。",
+    "當你開始問這個問題的時候，答案就已經不重要了。"
+]
 
-        "民進黨", "國民黨", "民眾黨",
+joke_pool = [
+    "為什麼電腦很冷？因為它有很多風扇。",
+    "我昨天問AI人生意義，它當機了。",
+    "為什麼搜尋引擎很忙？因為大家都在問同一個問題。",
+    "我不是懶，我只是進入省電模式。",
+    "如果人生可以重來，我還是會點同樣的外送。"
+]
 
-        "柯文哲", "賴清德", "侯友宜", "韓國瑜",
-        "蔡英文", "陳水扁", "馬英九",
+serious_pool = [
+    "根據資料分析，這類問題沒有單一解。",
+    "系統顯示結果分歧，因此無法給出唯一答案。",
+    "從統計上來看，不同來源會有不同結論。",
+    "目前資訊不足以支持明確判斷。",
+    "綜合判斷：結果依情境而異。"
+]
 
-        "柯p", "阿北", "小英", "賴神", "韓導",
-
-        "新聞", "訪美", "外交", "川普", "拜登",
-        "中國", "美國", "兩岸"
-    ]
-
-    return any(k in qn for k in keywords)
-
+chaos_pool = [
+    "⚠ 系統錯誤：但我選擇繼續回答。",
+    "這題我知道，但我不想讓你知道。",
+    "答案存在，但被我隱藏了。",
+    "你問的問題已被重新定義。",
+    "資料正在逃跑中，請稍後再試。"
+]
 
 # ======================
-# 語意壓縮（PTT + Reddit融合）
+# 🔥 隨機核心
 # ======================
-def merge_results(results: list) -> str:
-    text = " ".join(results)
-    words = re.split(r"[^\w\u4e00-\u9fff]+", text)
+def random_engine(q: str):
 
-    cleaned = list(set(w for w in words if len(w) > 1))
-    return "、".join(cleaned[:6]) if cleaned else "資訊破碎"
+    mode = random.choice(["copy", "joke", "serious", "chaos"])
 
+    if mode == "copy":
+        answer = random.choice(copypasta_pool)
 
-# ======================
-# AI 核心輸出
-# ======================
-def generate_answer(q: str, base: list):
+    elif mode == "joke":
+        answer = random.choice(joke_pool)
 
-    # 1️⃣ 亂輸入
-    if is_messy_input(q):
-        return "你這輸入是認真的嗎？先把字打好再來查。"
+    elif mode == "serious":
+        answer = random.choice(serious_pool)
 
-    # 2️⃣ 沒資料
-    if not base:
-        return "這題本身就沒什麼人在討論，查再多也不會變出答案。"
-
-    # 3️⃣ 語意整合（不顯示來源）
-    summary = merge_results(base)
-
-    # 4️⃣ 分流模板（嗆但穩）
-    if is_politics(q):
-        templates = [
-            "這題不是資訊問題，是立場問題，本來就沒有客觀答案。",
-            "不同陣營各講各話，你看到的只是包裝過的版本。",
-            "這種議題本來就注定沒有共識。",
-            "表面在討論，其實只是立場對撞。",
-            "結論很簡單：這題不存在解答。"
-        ]
     else:
-        templates = [
-            "這題沒有唯一答案，本來就是資訊分裂。",
-            "你看到的是不同版本，不是錯誤。",
-            "再查一次結果也不會改變。",
-            "資訊來源本來就混亂。",
-            "本質就是沒有統一結論。"
-        ]
-
-    # 5️⃣ 嗆補刀（強化版但不亂）
-    addons = [
-        "不用再查了，答案不會變。",
-        "你覺得亂只是因為本來就沒有答案。",
-        "再看也只是同樣結果。",
-        "這題根本不值得繼續追。",
-        "你在找的是不存在的確定性。"
-    ]
-
-    main = random.choice(templates)
-    extra = random.choice(addons)
-
-    # 6️⃣ 乾淨輸出（無PTT/Reddit/AI字樣）
-    return f"{main}（{summary}） {extra}"
-
-
-# ======================
-# 模擬搜尋入口（之後可接 API）
-# ======================
-def search_engine(q: str):
-
-    # 模擬 PTT + Reddit 已整合結果
-    ptt_results = [f"{q} 討論：立場不同", f"{q} 爭議：無定論"]
-    reddit_results = [f"{q} opinion mixed", f"{q} debate ongoing"]
-
-    base = ptt_results + reddit_results
+        answer = random.choice(chaos_pool)
 
     return {
-        "answer": generate_answer(q, base)
+        "input": q,
+        "mode": mode,
+        "answer": answer
     }
 
 
 # ======================
-# CLI 測試
+# API
 # ======================
-if __name__ == "__main__":
-    while True:
-        q = input("Search: ")
-        print(search_engine(q)["answer"])
+@app.get("/search")
+def search(q: str):
+    return random_engine(q)
