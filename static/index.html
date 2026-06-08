@@ -1,22 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Gxxgle-it</title>
+</head>
+
+<body style="font-family: Arial">
+
+<h2>Gxxgle-it</h2>
+
+<input id="q" placeholder="輸入問題">
+<button onclick="search()">搜尋</button>
+
+<pre id="out">輸入關鍵字開始搜尋...</pre>
+
 <script>
 async function search() {
   const q = document.getElementById("q").value;
+  const out = document.getElementById("out");
+
+  if (!q) {
+    out.innerText = "請輸入內容";
+    return;
+  }
 
   try {
-    const res = await fetch(`/search?q=${q}`);
+    out.innerText = "搜尋中...";
+
+    const res = await fetch(`/search?q=${encodeURIComponent(q)}`);
+
+    if (!res.ok) {
+      throw new Error("HTTP error: " + res.status);
+    }
+
     const data = await res.json();
 
-    console.log("API data:", data);
-
-    document.getElementById("out").innerText =
-      data.answer +
-      "\n\nPTT:\n" + (data.ptt || []).join("\n") +
-      "\n\nReddit:\n" + (data.reddit || []).join("\n");
+    out.innerText =
+      "🧠 AI回答：\n" + (data.answer || "無") +
+      "\n\nPTT：\n" + (data.ptt || []).join("\n") +
+      "\n\nReddit：\n" + (data.reddit || []).join("\n");
 
   } catch (err) {
     console.error(err);
-    document.getElementById("out").innerText =
-      "❌ API error，請打開 Console 看錯誤";
+    out.innerText =
+      "❌ 發生錯誤\n\n" + err.message;
   }
 }
 </script>
+
+</body>
+</html>
