@@ -8,7 +8,7 @@ import re
 app = FastAPI()
 
 # ======================
-# Reddit（內部資料源）
+# Reddit（內部參考用）
 # ======================
 def get_reddit(q):
     url = f"https://www.reddit.com/search.json?q={q}"
@@ -22,45 +22,58 @@ def get_reddit(q):
         return []
 
 # ======================
-# PTT（內部資料源）
+# PTT（內部參考用）
 # ======================
 def get_ptt(q):
     url = f"https://www.ptt.cc/bbs/Gossiping/search?q={q}"
     headers = {"User-Agent": "Mozilla/5.0"}
 
     try:
-        res = requests.get(
-            url,
-            headers=headers,
-            cookies={"over18": "1"},
-            timeout=5
-        )
+        res = requests.get(url, headers=headers, cookies={"over18": "1"}, timeout=5)
         soup = BeautifulSoup(res.text, "html.parser")
         return [t.text.strip() for t in soup.select(".title a")][:5]
     except:
         return []
 
 # ======================
-# 政治判斷
+# 政治判斷（完整版）
 # ======================
 def is_politics(q: str) -> bool:
+
     qn = re.sub(r"\s+", "", q)
 
     keywords = [
-        "政府", "選舉", "總統", "立委", "政策",
-        "台灣", "政治", "政黨", "內閣", "立法院", "行政院",
-        "民進黨", "國民黨", "民眾黨",
+        # 政治通用
+        "政府", "選舉", "總統", "立委", "市長", "縣長",
+        "政策", "政治", "政黨", "內閣",
+        "立法院", "行政院", "監察院", "司法院",
+
+        # 政黨
+        "民進黨", "國民黨", "民眾黨", "時代力量", "基進",
+
+        # 台灣政治人物
         "柯文哲", "賴清德", "侯友宜", "韓國瑜",
-        "蔡英文", "陳水扁", "阿扁",
-        "柯p", "小英", "賴神", "韓導", "阿北"
+        "蔡英文", "陳水扁", "馬英九", "朱立倫",
+        "蘇貞昌", "王金平",
+
+        # 綽號
+        "柯p", "阿北", "小英", "賴神", "韓導",
+
+        # 國際政治
+        "川普", "拜登", "習近平", "普丁",
+        "Trump", "Biden", "Xi",
+
+        # 延伸政治詞
+        "外交", "軍事", "兩岸", "戰爭", "制裁"
     ]
 
     return any(k in qn for k in keywords)
 
 # ======================
-# 亂輸入判斷（注音 / 鍵盤亂打）
+# 亂輸入判斷
 # ======================
 def is_messy_input(q: str) -> bool:
+
     q = q.strip()
 
     if len(q) <= 1:
@@ -78,85 +91,51 @@ def is_messy_input(q: str) -> bool:
 
     return False
 
-
 # ======================
-# 🔥 核心 AI 搜尋引擎
+# 🔥 AI 核心（乾淨嗆版）
 # ======================
 def generate_answer(q, ptt, reddit):
 
     base = ptt + reddit
 
-    # ======================
-    # 1️⃣ 亂輸入（優先嗆）
-    # ======================
+    # 1️⃣ 亂輸入
     if is_messy_input(q):
         return "你這輸入是認真的嗎？先把字打好再來查。"
 
-    # ======================
     # 2️⃣ 沒資料
-    # ======================
     if not base:
-        return "這題幾乎沒人在討論，你查到這裡也不會多一個答案。"
+        return "這題沒什麼人在討論，查再多也不會變出答案。"
 
-    # ======================
-    # 3️⃣ 合併語意（但不顯示來源）
-    # ======================
-    merged_text = " ".join(base)
-
-    keywords = list(set(
-        word for word in re.split(r"\W+", merged_text) if len(word) > 1
-    ))[:6]
-
-    keyword_str = "、".join(keywords) if keywords else "資訊分散"
-
-    # ======================
-    # 4️⃣ 主結論模板（嗆但合理）
-    # ======================
+    # 3️⃣ 政治 / 一般模板
     if is_politics(q):
         templates = [
-            "這題本質就是立場問題，不是資訊問題，問再多也不會有共識。",
-            "政治議題永遠都在各說各話，不存在客觀答案。",
-            "這種東西本來就會被不同立場重新解釋，沒有標準解。",
-            "看起來像在問問題，其實是在選立場。",
-            "結論很簡單：這題沒有結論。"
+            "這題就是立場問題，沒有共識可言。",
+            "政治議題本來就只會變成互相對立。",
+            "不同陣營講法完全不一樣，沒有標準答案。",
+            "你看到的不是資訊，是立場包裝。",
+            "這題本質就是對立，不是解答。"
         ]
     else:
         templates = [
-            "這題沒有單一答案，各種說法本來就會互相矛盾。",
-            "資訊來源本來就分散，你看到的只是不同版本。",
-            "這問題本身就沒有固定解，只是大家講法不同。",
-            "整理完的結果就是：沒有一致結論。",
-            "你再查一次，也不會得到不一樣答案。"
+            "這題沒有唯一答案，本來就會互相矛盾。",
+            "資訊來源不同，所以看起來才會混亂。",
+            "這種問題再查一次結果也不會改變。",
+            "你看到的是不同版本，不是錯誤。",
+            "本質就是資訊分散，沒有統一解。"
         ]
 
-    base_answer = random.choice(templates)
+    main = random.choice(templates)
 
-    # ======================
-    #  額外嗆人補強
-    # ======================
-    roast_addons = [
-        "這種問題其實不用想太複雜。",
-        "很多人問過，但答案一直都一樣。",
-        "你覺得混亂只是因為本來就沒答案。",
-        "這題再查十次結果也不會變。"
+    addons = [
+        "不用再查了，結果不會變。",
+        "你會覺得亂只是因為本來就沒答案。",
+        "再看一次也不會更清楚。",
+        "這題本來就沒有標準解。"
     ]
 
-    roast = random.choice(roast_addons)
+    extra = random.choice(addons)
 
-    # ======================
-    #  最終輸出（乾淨搜尋引擎）
-    # ======================
-    return f"""
-🧠 搜尋結論
-{base_answer}
-
-📌 特徵關鍵詞
-{keyword_str}
-
-💬 補充判斷
-{roast}
-""".strip()
-
+    return f"{main} {extra}"
 
 # ======================
 # UI
@@ -164,7 +143,6 @@ def generate_answer(q, ptt, reddit):
 @app.get("/")
 def home():
     return FileResponse("static/index.html")
-
 
 # ======================
 # API
