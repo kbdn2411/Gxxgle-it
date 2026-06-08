@@ -53,11 +53,11 @@ def generate_answer(q, ptt, reddit):
 
     templates = [
         "→ {q} 這個其實早就有人問過了",
-        "推 有人整理過但你應該沒爬文",
-        "噓 這問題是不是有點懶",
-        "→ 看起來就是標題農場集合",
-        "推 基本上沒有統一答案啦",
-        "→ 這種東西每次都會戰起來"
+        " 有人整理過但你應該沒爬文",
+        " 這問題是不是有點懶",
+        " 看起來就是標題農場集合",
+        " 基本上沒有統一答案啦",
+        "這種東西每次都會戰起來"
     ]
 
     roast = random.choice(templates).format(q=q)
@@ -75,8 +75,22 @@ def generate_answer(q, ptt, reddit):
 
 💬 結論：
 網路上的資訊不是沒有，而是每個人都講得不一樣，所以看起來就像沒有答案。
-"""
+"""  
+    # ======================
+    # 🔴 政治爭議模式（加強戰場感）
+    # ======================
+    politics_templates = [
+        "→ 政治文通常最後都會吵成一團，不意外",
+        "噓 八卦板看到這種問題就是準備開戰",
+        "推 又是一個標準爭議議題",
+        "→ 這種東西通常沒有共識，只有立場",
+        "噓 討論前建議先確認資訊來源"
+    ]
 
+    if topic == "politics":
+        opener = random.choice(politics_templates).format(q=q)
+    else:
+        opener = random.choice(general_templates).format(q=q)
 # ======================
 # UI
 # ======================
