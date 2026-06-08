@@ -1,50 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
-  <meta charset="UTF-8">
-  <title>Gxxgle-it</title>
+<meta charset="UTF-8">
+<title>Chaos Search Engine</title>
+
+<style>
+body {
+    background: #0f0f0f;
+    color: #00ff9d;
+    font-family: Arial;
+    text-align: center;
+    padding-top: 80px;
+}
+
+input {
+    width: 60%;
+    padding: 12px;
+    font-size: 18px;
+    border: none;
+    border-radius: 8px;
+}
+
+button {
+    padding: 12px 20px;
+    margin-left: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#result {
+    margin-top: 40px;
+    font-size: 20px;
+    white-space: pre-wrap;
+}
+</style>
 </head>
 
-<body style="font-family: Arial">
+<body>
 
-<h2>Gxxgle-it</h2>
+<h1>🔍 Chaos Search Engine</h1>
 
-<input id="q" placeholder="輸入問題">
+<input id="q" placeholder="輸入問題...">
 <button onclick="search()">搜尋</button>
 
-<pre id="out">輸入關鍵字開始搜尋...</pre>
+<div id="result"></div>
 
 <script>
 async function search() {
-  const q = document.getElementById("q").value;
-  const out = document.getElementById("out");
+    let q = document.getElementById("q").value;
 
-  if (!q) {
-    out.innerText = "請輸入內容";
-    return;
-  }
+    let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
+    let data = await res.json();
 
-  try {
-    out.innerText = "搜尋中...";
-
-    const res = await fetch(`/search?q=${encodeURIComponent(q)}`);
-
-    if (!res.ok) {
-      throw new Error("HTTP error: " + res.status);
-    }
-
-    const data = await res.json();
-
-    out.innerText =
-      "🧠 AI回答：\n" + (data.answer || "無") +
-      "\n\nPTT：\n" + (data.ptt || []).join("\n") +
-      "\n\nReddit：\n" + (data.reddit || []).join("\n");
-
-  } catch (err) {
-    console.error(err);
-    out.innerText =
-      "❌ 發生錯誤\n\n" + err.message;
-  }
+    document.getElementById("result").innerText =
+        "模式: " + data.mode + "\n\n" + data.answer;
 }
 </script>
 
