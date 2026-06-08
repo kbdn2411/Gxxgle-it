@@ -8,7 +8,7 @@ import re
 app = FastAPI()
 
 # ======================
-# Reddit
+# Reddit（內部參考用）
 # ======================
 def get_reddit(q):
     url = f"https://www.reddit.com/search.json?q={q}"
@@ -22,7 +22,7 @@ def get_reddit(q):
         return []
 
 # ======================
-# PTT
+# PTT（內部參考用）
 # ======================
 def get_ptt(q):
     url = f"https://www.ptt.cc/bbs/Gossiping/search?q={q}"
@@ -36,69 +36,54 @@ def get_ptt(q):
         return []
 
 # ======================
-# 正規化
-# ======================
-def normalize(q: str) -> str:
-    return re.sub(r"\s+", "", q).lower()
-
-# ======================
-# 語意政治判斷（升級版）
+# 政治判斷（語意版）
 # ======================
 def is_politics(q: str) -> bool:
-    qn = normalize(q)
+    qn = re.sub(r"\s+", "", q)
 
     keywords = [
         "政府", "選舉", "總統", "立委", "政策",
         "台灣", "柯文哲", "賴清德", "侯友宜",
         "韓國瑜", "蔡英文", "陳水扁", "阿扁",
         "民進黨", "國民黨", "民眾黨",
-        "投票", "大選", "立法院", "行政院"
+        "立法院", "行政院"
     ]
 
-    if any(k in qn for k in keywords):
+    return any(k in qn for k in keywords)
+
+# ======================
+# 亂輸入判斷（注音/亂碼）
+# ======================
+def is_messy(q: str) -> bool:
+    q = q.strip()
+
+    if len(q) <= 1:
         return True
 
-    # 拆字容錯
-    if any(all(c in qn for c in k) for k in ["韓國瑜", "蔡英文", "柯文哲"]):
+    if re.fullmatch(r"[^\u4e00-\u9fffA-Za-z0-9]+", q):
+        return True
+
+    if len(set(q)) <= 2 and len(q) > 3:
+        return True
+
+    gibberish = ["asdf", "qwe", "zxc", "jkl", "ㄅㄆㄇ"]
+    if any(g in q.lower() for g in gibberish):
         return True
 
     return False
 
 # ======================
-# 錯字修正（簡易）
-# ======================
-def fix_query(q: str) -> str:
-    q = normalize(q)
-
-    corrections = {
-        "韓國玉": "韓國瑜",
-        "柯p": "柯文哲",
-        "蔡依林英文": "蔡英文"
-    }
-
-    for k, v in corrections.items():
-        if k in q:
-            q = q.replace(k, v)
-
-    return q
-
-# ======================
-# AI 回答層
+# AI 回答（純一句話）
 # ======================
 def generate_answer(q, ptt, reddit):
 
-    q = fix_query(q)
-    base = ptt + reddit
+    # ❗亂輸入直接嗆
+    if is_messy(q):
+        return "你這輸入是認真的嗎？先把字打好再來查。"
 
-    # 沒資料
-    if not base:
-        return "這種查詢目前沒人在乎，你查到這裡其實也不會多一個答案。"
-
-    # 亂輸入
-    if len(q.strip()) <= 1:
-        return "你這輸入看起來像亂打的，先打清楚再來查。"
-
-    # 一般模板
+    # ======================
+    # 一般模板（你要的回來了）
+    # ======================
     general_templates = [
         "這題其實早就有人問過了。",
         "資料本來就混在一起，沒有標準答案。",
@@ -107,14 +92,20 @@ def generate_answer(q, ptt, reddit):
         "這類問題就是資訊分歧。"
     ]
 
+    # ======================
     # 政治模板
+    # ======================
     politics_templates = [
-        "政治問題本來就沒有共識。",
-        "不同立場各說各話。",
-        "這種議題本質就是對立，不會有答案。",
-        "網路討論最後都會變成立場問題。",
-        "政治議題沒有單一結論。"
+        "這種政治問題本來就沒有標準答案，各方立場不同。",
+        "政治議題通常不會有共識，只會有立場差異。",
+        "這類問題在網路上永遠吵不完，也不會有結論。",
+        "政治本質就是分歧資訊，不存在單一正解。"
     ]
+
+    # ❗沒有資料才嗆這個（修正你之前 base 問題）
+    base = ptt + reddit
+    if not base:
+        return "這種查詢目前沒人在乎，你查到這裡其實也不會多一個答案。"
 
     templates = politics_templates if is_politics(q) else general_templates
 
@@ -128,7 +119,7 @@ def home():
     return FileResponse("static/index.html")
 
 # ======================
-# API
+# API（只回一句話）
 # ======================
 @app.get("/search")
 def search(q: str):
@@ -137,6 +128,5 @@ def search(q: str):
     reddit = get_reddit(q)
 
     return {
-        "query": q,
         "answer": generate_answer(q, ptt, reddit)
     }
