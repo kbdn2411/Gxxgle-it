@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse
 import requests
 from bs4 import BeautifulSoup
 import random
+import re
 
 app = FastAPI()
 
@@ -35,48 +36,69 @@ def get_ptt(q):
         return []
 
 # ======================
-# 政治關鍵字
+# 正規化
 # ======================
-politics_keywords = [
-    "政府", "選舉", "總統", "立委", "政策",
-    "台灣", "柯文哲", "賴清德", "侯友宜",
-    "韓國瑜", "蔡英文", "陳水扁", "阿扁"
-]
-
-def is_politics(q):
-    return any(k in q for k in politics_keywords)
+def normalize(q: str) -> str:
+    return re.sub(r"\s+", "", q).lower()
 
 # ======================
-# AI 回答層（極簡版）
+# 語意政治判斷（升級版）
+# ======================
+def is_politics(q: str) -> bool:
+    qn = normalize(q)
+
+    keywords = [
+        "政府", "選舉", "總統", "立委", "政策",
+        "台灣", "柯文哲", "賴清德", "侯友宜",
+        "韓國瑜", "蔡英文", "陳水扁", "阿扁",
+        "民進黨", "國民黨", "民眾黨",
+        "投票", "大選", "立法院", "行政院"
+    ]
+
+    if any(k in qn for k in keywords):
+        return True
+
+    # 拆字容錯
+    if any(all(c in qn for c in k) for k in ["韓國瑜", "蔡英文", "柯文哲"]):
+        return True
+
+    return False
+
+# ======================
+# 錯字修正（簡易）
+# ======================
+def fix_query(q: str) -> str:
+    q = normalize(q)
+
+    corrections = {
+        "韓國玉": "韓國瑜",
+        "柯p": "柯文哲",
+        "蔡依林英文": "蔡英文"
+    }
+
+    for k, v in corrections.items():
+        if k in q:
+            q = q.replace(k, v)
+
+    return q
+
+# ======================
+# AI 回答層
 # ======================
 def generate_answer(q, ptt, reddit):
 
+    q = fix_query(q)
     base = ptt + reddit
 
-    # ======================
     # 沒資料
-    # ======================
     if not base:
         return "這種查詢目前沒人在乎，你查到這裡其實也不會多一個答案。"
 
-    # ======================
-    # 🔥 錯字嗆人判斷（新增）
-    # ======================
-    raw = q.strip()
+    # 亂輸入
+    if len(q.strip()) <= 1:
+        return "你這輸入看起來像亂打的，先打清楚再來查。"
 
-    # 簡單判斷：太亂 / 太短 / 含奇怪符號
-    messy = (
-        len(raw) <= 1 or
-        raw.count(" ") > 5 or
-        any(c in raw for c in ["@@", "##", "$$", "？？？"])
-    )
-
-    if messy:
-        return "你這輸入是認真的嗎？先把字打好再來查。"
-
-    # ======================
     # 一般模板
-    # ======================
     general_templates = [
         "這題其實早就有人問過了。",
         "資料本來就混在一起，沒有標準答案。",
@@ -85,9 +107,7 @@ def generate_answer(q, ptt, reddit):
         "這類問題就是資訊分歧。"
     ]
 
-    # ======================
     # 政治模板
-    # ======================
     politics_templates = [
         "政治問題本來就沒有共識。",
         "不同立場各說各話。",
@@ -98,34 +118,8 @@ def generate_answer(q, ptt, reddit):
 
     templates = politics_templates if is_politics(q) else general_templates
 
- 
+    return random.choice(templates)
 
-import re
-
-def is_messy_input(q: str) -> bool:
-    q = q.strip()
-
-    # 1️⃣ 太短
-    if len(q) <= 1:
-        return True
-
-    # 2️⃣ 大量非文字（像亂碼 / 注音鍵盤亂按）
-    if re.fullmatch(r"[^\u4e00-\u9fffA-Za-z0-9]+", q):
-        return True
-
-    # 3️⃣ 重複無意義字元（例如：ㄅㄅㄅㄅ / asdfasdf）
-    if len(set(q)) <= 2 and len(q) > 3:
-        return True
-
-    # 4️⃣ 英文鍵盤亂打常見型
-    gibberish_patterns = [
-        "asdf", "jkl", "qwe", "zxc", "ㄅㄆㄇ", "ㄆㄇㄈ"
-    ]
-    if any(p in q.lower() for p in gibberish_patterns):
-        return True
-
-    return False
-   
 # ======================
 # UI
 # ======================
