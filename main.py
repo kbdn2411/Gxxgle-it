@@ -1,73 +1,5 @@
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
-import requests
-from bs4 import BeautifulSoup
 import random
 import re
-
-app = FastAPI()
-
-# ======================
-# Reddit（內部參考用）
-# ======================
-def get_reddit(q):
-    url = f"https://www.reddit.com/search.json?q={q}"
-    headers = {"User-Agent": "Mozilla/5.0"}
-
-    try:
-        res = requests.get(url, headers=headers, timeout=5)
-        data = res.json()
-        return [c["data"]["title"] for c in data["data"]["children"]][:5]
-    except:
-        return []
-
-# ======================
-# PTT（內部參考用）
-# ======================
-def get_ptt(q):
-    url = f"https://www.ptt.cc/bbs/Gossiping/search?q={q}"
-    headers = {"User-Agent": "Mozilla/5.0"}
-
-    try:
-        res = requests.get(url, headers=headers, cookies={"over18": "1"}, timeout=5)
-        soup = BeautifulSoup(res.text, "html.parser")
-        return [t.text.strip() for t in soup.select(".title a")][:5]
-    except:
-        return []
-
-# ======================
-# 政治判斷（完整版）
-# ======================
-def is_politics(q: str) -> bool:
-
-    qn = re.sub(r"\s+", "", q)
-
-    keywords = [
-        # 政治通用
-        "政府", "選舉", "總統", "立委", "市長", "縣長",
-        "政策", "政治", "政黨", "內閣",
-        "立法院", "行政院", "監察院", "司法院",
-
-        # 政黨
-        "民進黨", "國民黨", "民眾黨", "時代力量", "基進",
-
-        # 台灣政治人物
-        "柯文哲", "賴清德", "侯友宜", "韓國瑜",
-        "蔡英文", "陳水扁", "馬英九", "朱立倫",
-        "蘇貞昌", "王金平",
-
-        # 綽號
-        "柯p", "阿北", "小英", "賴神", "韓導",
-
-        # 國際政治
-        "川普", "拜登", "習近平", "普丁",
-        "Trump", "Biden", "Xi",
-
-        # 延伸政治詞
-        "外交", "軍事", "兩岸", "戰爭", "制裁"
-    ]
-
-    return any(k in qn for k in keywords)
 
 # ======================
 # 亂輸入判斷
@@ -91,8 +23,34 @@ def is_messy_input(q: str) -> bool:
 
     return False
 
+
 # ======================
-# 🔥 AI 核心（乾淨嗆版）
+# 政治判斷
+# ======================
+def is_politics(q: str) -> bool:
+
+    qn = re.sub(r"\s+", "", q)
+
+    keywords = [
+        "政府", "選舉", "總統", "立委", "市長", "縣長",
+        "政策", "政治", "政黨", "內閣",
+        "立法院", "行政院",
+
+        "民進黨", "國民黨", "民眾黨",
+
+        "柯文哲", "賴清德", "侯友宜", "韓國瑜",
+        "蔡英文", "陳水扁", "馬英九",
+
+        "柯p", "阿北", "小英", "賴神", "韓導",
+
+        "新聞", "訪美", "外交", "川普", "拜登", "中國", "美國"
+    ]
+
+    return any(k in qn for k in keywords)
+
+
+# ======================
+# AI 回答核心
 # ======================
 def generate_answer(q, ptt, reddit):
 
@@ -106,7 +64,7 @@ def generate_answer(q, ptt, reddit):
     if not base:
         return "這題沒什麼人在討論，查再多也不會變出答案。"
 
-    # 3️⃣ 政治 / 一般模板
+    # 3️⃣ 模板選擇
     if is_politics(q):
         templates = [
             "這題就是立場問題，沒有共識可言。",
@@ -126,33 +84,16 @@ def generate_answer(q, ptt, reddit):
 
     main = random.choice(templates)
 
+    # 4️⃣ 加強嗆句（你要的「更兇版本」）
     addons = [
         "不用再查了，結果不會變。",
         "你會覺得亂只是因為本來就沒答案。",
         "再看一次也不會更清楚。",
-        "這題本來就沒有標準解。"
+        "這題本來就沒有標準解。",
+        "結論很明顯，但你一直在找不存在的答案。"
     ]
 
     extra = random.choice(addons)
 
+    # 5️⃣ 最終輸出
     return f"{main} {extra}"
-
-# ======================
-# UI
-# ======================
-@app.get("/")
-def home():
-    return FileResponse("static/index.html")
-
-# ======================
-# API
-# ======================
-@app.get("/search")
-def search(q: str):
-
-    ptt = get_ptt(q)
-    reddit = get_reddit(q)
-
-    return {
-        "answer": generate_answer(q, ptt, reddit)
-    }
