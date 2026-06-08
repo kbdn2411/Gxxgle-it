@@ -44,22 +44,44 @@ def get_ptt(q):
 # ======================
 def generate_answer(q, ptt, reddit):
 
-    all_text = " ".join(ptt + reddit)
+    combined = ptt + reddit
 
-    if not all_text:
-        return f"關於「{q}」目前網路討論資料不足，無法形成明確共識。"
+    if not combined:
+        return f"你問「{q}」但網路上連吵都沒人吵，這問題的存在感比 WiFi 訊號還弱。"
 
+    # ===== 1. 摘要（抓關鍵字）=====
+    keywords = []
+
+    for text in combined[:10]:
+        words = text.replace("[", "").replace("]", "").split()
+        keywords.extend(words[:3])  # 簡單粗暴抽詞
+
+    keywords = list(set(keywords))[:5]
+
+    summary = "、".join(keywords) if keywords else "無明確關鍵詞"
+
+    # ===== 2. 酸回邏輯 =====
+    if "嗎" in q or "?" in q:
+        roast = "這問題你自己查一下其實比較快，不過既然你問了，答案大概是大家也沒共識。"
+    elif "有沒有" in q:
+        roast = "有，但討論內容跟你期待的答案通常不太一樣。"
+    else:
+        roast = "這種問題在網路上通常只會越查越混亂，不會越查越清楚。"
+
+    # ===== 3. 最終輸出 =====
     return f"""
-關於「{q}」的網路討論整理如下：
+🧠 網路摘要：
+從 PTT / Reddit 觀察，主要關鍵詞是：{summary}
 
-🔹 PTT 與 Reddit 的主要內容顯示：
-{ptt[0] if ptt else "PTT無資料"}
+📌 討論狀態：
+{ptt[:3] if ptt else "PTT無資料"}
+{reddit[:3] if reddit else "Reddit無資料"}
 
-🔹 社群討論方向：
-{reddit[0] if reddit else "Reddit無資料"}
+😏 AI吐槽：
+{roast}
 
-📌 總結：
-此議題在網路上的討論多為意見與新聞標題延伸，並沒有單一標準答案，但可以看出社群主要關注標題所反映的事件與爭議。
+💬 結論：
+網路上的資訊不是沒有，而是每個人都講得不一樣，所以看起來就像沒有答案。
 """
 
 # ======================
