@@ -46,5 +46,9 @@ def search(q: str):
     return {
         "query": q,
         "reddit": reddit_results,
-        "ptt": ptt_results
+        "ptt": ptt_resultsfrom fastapi.responses import FileResponse
+
+@app.get("/")
+def home():
+    return FileResponse("static/index.html")
     }
