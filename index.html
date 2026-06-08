@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Human Search Engine</title>
+
+<style>
+body {
+    margin:0;
+    font-family:-apple-system;
+    background:black;
+    color:white;
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+}
+
+header {
+    padding:20px;
+    text-align:center;
+    border-bottom:1px solid #333;
+}
+
+#box {
+    flex:1;
+    padding:20px;
+    overflow:auto;
+}
+
+.msg {
+    background:#111;
+    padding:12px;
+    margin-bottom:10px;
+    border-radius:10px;
+}
+
+input {
+    flex:1;
+    padding:15px;
+    font-size:18px;
+    border:none;
+    border-radius:10px;
+}
+
+button {
+    padding:15px;
+    border:none;
+    background:white;
+    color:black;
+    border-radius:10px;
+}
+
+#input {
+    display:flex;
+    gap:10px;
+    padding:15px;
+}
+</style>
+</head>
+
+<body>
+
+<header>Human Search Engine</header>
+
+<div id="box"></div>
+
+<div id="input">
+    <input id="q" placeholder="輸入問題">
+    <button onclick="go()">→</button>
+</div>
+
+<script>
+const API = "https://YOUR-BACKEND-URL/search";
+
+async function go(){
+    let q = document.getElementById("q").value;
+
+    let res = await fetch(API + "?q=" + encodeURIComponent(q));
+    let data = await res.json();
+
+    let box = document.getElementById("box");
+    box.innerHTML = "";
+
+    data.results.forEach(r => {
+        let d = document.createElement("div");
+        d.className = "msg";
+        d.innerText = r;
+        box.appendChild(d);
+    });
+}
+</script>
+
+</body>
+</html>
