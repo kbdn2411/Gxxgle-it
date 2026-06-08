@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Gxxgle-it</title>
+</head>
+<body>
+
+<h2>Gxxgle-it (Reddit + PTT)</h2>
+
+<input id="q" placeholder="輸入問題">
+<button onclick="search()">搜尋</button>
+
+<pre id="out"></pre>
+
+<script>
+async function search() {
+  const q = document.getElementById("q").value;
+
+  const res = await fetch(`/search?q=${q}`);
+  const data = await res.json();
+
+  document.getElementById("out").innerText =
+    JSON.stringify(data, null, 2);
+}
+</script>
+
+</body>
+</html>
