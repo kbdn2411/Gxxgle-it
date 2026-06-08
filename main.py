@@ -20,6 +20,7 @@ def get_reddit(q):
     except:
         return []
 
+
 # ======================
 # PTT
 # ======================
@@ -109,15 +110,6 @@ def generate_answer(q, ptt, reddit):
     reddit_lines = reddit[:3] if reddit else ["Reddit無資料"]
 
     return f"""
-🔥 系統分析
-{roast}
-
-🧠 網路摘要
-{summary}
-
-📌 討論狀態
-PTT: {ptt_lines}
-Reddit: {reddit_lines}
 
 💬 結論
 你自己判斷，不用再問一次。
