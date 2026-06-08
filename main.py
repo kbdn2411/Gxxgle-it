@@ -86,6 +86,13 @@ def generate_answer(q, ptt, reddit):
         "→ 這種東西通常沒有共識，只有立場",
         "噓 討論前建議先確認資訊來源"
     ]
+  politics_keywords = [
+        "政府", "選舉", "總統", "立委", "政策",
+        "台灣", "柯文哲", "賴清德", "侯友宜",
+        "韓國瑜", "蔡英文", "陳水扁", "阿扁"
+    ]
+
+    is_politics = any(k in q for k in politics_keywords)
 
     if topic == "politics":
         opener = random.choice(politics_templates).format(q=q)
