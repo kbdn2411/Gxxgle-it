@@ -48,7 +48,7 @@ async function go() {
     let data = await res.json();
 
     document.getElementById("out").innerText =
-        "模式: " + data.mode + "\n\n" + data.answer;
+        data.answer;
 }
 </script>
 
