@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html>
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <title>Chaos Search Engine</title>
 
 <style>
 body {
     background: #0f0f0f;
-    color: #00ff9d;
+    color: #00ffcc;
     font-family: Arial;
     text-align: center;
     padding-top: 80px;
@@ -15,22 +15,17 @@ body {
 
 input {
     width: 60%;
-    padding: 12px;
+    padding: 10px;
     font-size: 18px;
-    border: none;
-    border-radius: 8px;
 }
 
 button {
-    padding: 12px 20px;
+    padding: 10px 20px;
     margin-left: 10px;
-    font-size: 16px;
-    cursor: pointer;
 }
 
-#result {
-    margin-top: 40px;
-    font-size: 20px;
+pre {
+    margin-top: 30px;
     white-space: pre-wrap;
 }
 </style>
@@ -38,21 +33,21 @@ button {
 
 <body>
 
-<h1>🔍 Chaos Search Engine</h1>
+<h1>🔥 Chaos Search Engine</h1>
 
 <input id="q" placeholder="輸入問題...">
-<button onclick="search()">搜尋</button>
+<button onclick="go()">搜尋</button>
 
-<div id="result"></div>
+<pre id="out"></pre>
 
 <script>
-async function search() {
+async function go() {
     let q = document.getElementById("q").value;
 
     let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
     let data = await res.json();
 
-    document.getElementById("result").innerText =
+    document.getElementById("out").innerText =
         "模式: " + data.mode + "\n\n" + data.answer;
 }
 </script>
