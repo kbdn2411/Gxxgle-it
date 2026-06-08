@@ -1,12 +1,49 @@
-
-import re
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+import requests
+from bs4 import BeautifulSoup
 import random
+import re
+
+app = FastAPI()
+
+# ======================
+# Reddit（內部資料源）
+# ======================
+def get_reddit(q):
+    url = f"https://www.reddit.com/search.json?q={q}"
+    headers = {"User-Agent": "Mozilla/5.0"}
+
+    try:
+        res = requests.get(url, headers=headers, timeout=5)
+        data = res.json()
+        return [c["data"]["title"] for c in data["data"]["children"]][:5]
+    except:
+        return []
+
+# ======================
+# PTT（內部資料源）
+# ======================
+def get_ptt(q):
+    url = f"https://www.ptt.cc/bbs/Gossiping/search?q={q}"
+    headers = {"User-Agent": "Mozilla/5.0"}
+
+    try:
+        res = requests.get(
+            url,
+            headers=headers,
+            cookies={"over18": "1"},
+            timeout=5
+        )
+        soup = BeautifulSoup(res.text, "html.parser")
+        return [t.text.strip() for t in soup.select(".title a")][:5]
+    except:
+        return []
 
 # ======================
 # 政治判斷
 # ======================
 def is_politics(q: str) -> bool:
-
     qn = re.sub(r"\s+", "", q)
 
     keywords = [
@@ -20,12 +57,10 @@ def is_politics(q: str) -> bool:
 
     return any(k in qn for k in keywords)
 
-
 # ======================
-# 亂輸入判斷
+# 亂輸入判斷（注音 / 鍵盤亂打）
 # ======================
 def is_messy_input(q: str) -> bool:
-
     q = q.strip()
 
     if len(q) <= 1:
@@ -45,26 +80,26 @@ def is_messy_input(q: str) -> bool:
 
 
 # ======================
-# 🔥 核心搜尋引擎 AI
+# 🔥 核心 AI 搜尋引擎
 # ======================
 def generate_answer(q, ptt, reddit):
 
     base = ptt + reddit
 
     # ======================
-    # 1️⃣ 亂輸入
+    # 1️⃣ 亂輸入（優先嗆）
     # ======================
     if is_messy_input(q):
         return "你這輸入是認真的嗎？先把字打好再來查。"
 
     # ======================
-    # 2️⃣ 無結果
+    # 2️⃣ 沒資料
     # ======================
     if not base:
-        return "查不到什麼東西，這題本身就沒什麼人在討論。"
+        return "這題幾乎沒人在討論，你查到這裡也不會多一個答案。"
 
     # ======================
-    # 3️⃣ 建立語料理解（不顯示來源）
+    # 3️⃣ 合併語意（但不顯示來源）
     # ======================
     merged_text = " ".join(base)
 
@@ -75,7 +110,7 @@ def generate_answer(q, ptt, reddit):
     keyword_str = "、".join(keywords) if keywords else "資訊分散"
 
     # ======================
-    # 4️⃣ 語氣模板（核心輸出）
+    # 4️⃣ 主結論模板（嗆但合理）
     # ======================
     if is_politics(q):
         templates = [
@@ -97,27 +132,49 @@ def generate_answer(q, ptt, reddit):
     base_answer = random.choice(templates)
 
     # ======================
-    # 5️⃣ 嗆人強化（輕量）
+    #  額外嗆人補強
     # ======================
     roast_addons = [
         "這種問題其實不用想太複雜。",
-        "很多人問過了，但答案一直都一樣。",
-        "你會覺得混亂只是因為本來就沒答案。",
-        "這題再查十次也是同樣結果。"
+        "很多人問過，但答案一直都一樣。",
+        "你覺得混亂只是因為本來就沒答案。",
+        "這題再查十次結果也不會變。"
     ]
 
     roast = random.choice(roast_addons)
 
     # ======================
-    # 6️⃣ 最終輸出（乾淨搜尋引擎）
+    #  最終輸出（乾淨搜尋引擎）
     # ======================
     return f"""
 🧠 搜尋結論
 {base_answer}
 
-📌 判斷特徵
+📌 特徵關鍵詞
 {keyword_str}
 
-💬 補充
+💬 補充判斷
 {roast}
 """.strip()
+
+
+# ======================
+# UI
+# ======================
+@app.get("/")
+def home():
+    return FileResponse("static/index.html")
+
+
+# ======================
+# API
+# ======================
+@app.get("/search")
+def search(q: str):
+
+    ptt = get_ptt(q)
+    reddit = get_reddit(q)
+
+    return {
+        "answer": generate_answer(q, ptt, reddit)
+    }
