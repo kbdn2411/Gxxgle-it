@@ -52,7 +52,11 @@ def is_politics(q: str) -> bool:
 # ======================
 # AI 回答核心
 # ======================
-def generate_answer(q, ptt, reddit):
+def generate_answer(q, ptt=None, reddit=None):
+
+    # 避免 None crash
+    ptt = ptt or []
+    reddit = reddit or []
 
     base = ptt + reddit
 
@@ -64,7 +68,7 @@ def generate_answer(q, ptt, reddit):
     if not base:
         return "這題沒什麼人在討論，查再多也不會變出答案。"
 
-    # 3️⃣ 模板選擇
+    # 3️⃣ 模板
     if is_politics(q):
         templates = [
             "這題就是立場問題，沒有共識可言。",
@@ -84,7 +88,6 @@ def generate_answer(q, ptt, reddit):
 
     main = random.choice(templates)
 
-    # 4️⃣ 加強嗆句（你要的「更兇版本」）
     addons = [
         "不用再查了，結果不會變。",
         "你會覺得亂只是因為本來就沒答案。",
@@ -95,5 +98,4 @@ def generate_answer(q, ptt, reddit):
 
     extra = random.choice(addons)
 
-    # 5️⃣ 最終輸出
     return f"{main} {extra}"
