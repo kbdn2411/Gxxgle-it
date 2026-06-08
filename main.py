@@ -42,32 +42,25 @@ def get_ptt(q):
 # ======================
 # AI 回答層（重點）
 # ======================
+import random
+
 def generate_answer(q, ptt, reddit):
 
-    combined = ptt + reddit
+    if not ptt and not reddit:
+        return f"→ {q} 這種問題現在沒人討論\n噓 這種東西也要問?"
 
-    if not combined:
-        return f"你問「{q}」但網路上連吵都沒人吵，這問題的存在感比 WiFi 訊號還弱。"
+    base = ptt + reddit
 
-    # ===== 1. 摘要（抓關鍵字）=====
-    keywords = []
+    templates = [
+        "→ {q} 這個其實早就有人問過了",
+        "推 有人整理過但你應該沒爬文",
+        "噓 這問題是不是有點懶",
+        "→ 看起來就是標題農場集合",
+        "推 基本上沒有統一答案啦",
+        "→ 這種東西每次都會戰起來"
+    ]
 
-    for text in combined[:10]:
-        words = text.replace("[", "").replace("]", "").split()
-        keywords.extend(words[:3])  # 簡單粗暴抽詞
-
-    keywords = list(set(keywords))[:5]
-
-    summary = "、".join(keywords) if keywords else "無明確關鍵詞"
-
-    # ===== 2. 酸回邏輯 =====
-    if "嗎" in q or "?" in q:
-        roast = "這問題你自己查一下其實比較快，不過既然你問了，答案大概是大家也沒共識。"
-    elif "有沒有" in q:
-        roast = "有，但討論內容跟你期待的答案通常不太一樣。"
-    else:
-        roast = "這種問題在網路上通常只會越查越混亂，不會越查越清楚。"
-
+    roast = random.choice(templates).format(q=q)
     # ===== 3. 最終輸出 =====
     return f"""
 🧠 網路摘要：
