@@ -1,43 +1,41 @@
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import praw
 import requests
 from bs4 import BeautifulSoup
 
 app = FastAPI()
 
-# ======================
-# Reddit 設定
-# ======================
+# 允許前端呼叫（很重要）
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Reddit（記得填 API）
 reddit = praw.Reddit(
     client_id="你的client_id",
     client_secret="你的client_secret",
     user_agent="gxxgle-it"
 )
 
-# ======================
 # PTT crawler
-# ======================
-def get_ptt(keyword):
-    url = f"https://www.ptt.cc/bbs/Gossiping/search?q={keyword}"
+def get_ptt(q):
+    url = f"https://www.ptt.cc/bbs/Gossiping/search?q={q}"
     headers = {"User-Agent": "Mozilla/5.0"}
 
     res = requests.get(url, headers=headers, cookies={"over18": "1"})
     soup = BeautifulSoup(res.text, "html.parser")
 
-    results = []
-    for t in soup.select(".title a"):
-        results.append(t.text.strip())
+    return [t.text.strip() for t in soup.select(".title a")]
 
-    return results
-
-
-# ======================
-# API
-# ======================
 @app.get("/search")
 def search(q: str):
 
-    # Reddit
     reddit_results = []
     try:
         for post in reddit.subreddit("all").search(q, limit=5):
@@ -45,13 +43,11 @@ def search(q: str):
     except:
         reddit_results = ["Reddit error"]
 
-    # PTT
     try:
         ptt_results = get_ptt(q)
     except:
         ptt_results = ["PTT error"]
 
-    # 合併（藝術化輸出）
     return {
         "query": q,
         "reddit": reddit_results,
