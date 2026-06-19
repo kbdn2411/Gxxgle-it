@@ -2,33 +2,9 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Chaos Search Engine</title>
+<title>超嚴謹搜尋器</title>
 
 <style>
-body {
-    background: #0f0f0f;
-    color: #00ffcc;
-    font-family: Arial;
-    text-align: center;
-    padding-top: 80px;
-}
-
-input {
-    width: 60%;
-    padding: 10px;
-    font-size: 18px;
-}
-
-button {
-    padding: 10px 20px;
-    margin-left: 10px;
-}
-
-pre {
-    margin-top: 30px;
-    white-space: pre-wrap;
-}
-</style<style>
 body {
     background: #0f0f0f;
     color: #00ffcc;
@@ -37,13 +13,11 @@ body {
     padding-top: 120px;
 }
 
-/* 🔥 標題變超大 */
 h1 {
     font-size: 48px;
     margin-bottom: 40px;
 }
 
-/* 🔥 輸入框變大 */
 input {
     width: 70%;
     padding: 18px;
@@ -53,7 +27,6 @@ input {
     outline: none;
 }
 
-/* 🔥 按鈕變大 */
 button {
     padding: 18px 28px;
     font-size: 18px;
@@ -61,19 +34,20 @@ button {
     cursor: pointer;
 }
 
-/* 🔥 輸出區變清楚 */
 pre {
     margin-top: 40px;
     white-space: pre-wrap;
     font-size: 20px;
     line-height: 1.6;
+    text-align: left;
+    display: inline-block;
 }
 </style>
 </head>
 
 <body>
 
-<h1> 超嚴謹搜尋器</h1>
+<h1>超嚴謹搜尋器</h1>
 
 <input id="q" placeholder="輸入問題...">
 <button onclick="go()">搜尋</button>
@@ -88,7 +62,16 @@ async function go() {
     let data = await res.json();
 
     document.getElementById("out").innerText =
-        data.answer;
+`搜尋結果：約 ${data.results} 筆
+
+可信度：${data.credibility}%
+
+AI摘要：
+${data.summary}
+
+────────────────────
+
+${data.answer}`;
 }
 </script>
 
