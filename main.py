@@ -3,7 +3,6 @@ from fastapi.responses import FileResponse
 import random
 import os
 
-</script>
 # ======================
 # AI 回答池（隨機但穩定）
 # ======================
