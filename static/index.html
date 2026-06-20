@@ -1,8 +1,9 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>超嚴謹搜尋器</title>
+<title>搜尋器</title>
 
 <style>
 body {
@@ -13,10 +14,7 @@ body {
     padding-top: 100px;
 }
 
-h1 {
-    font-size: 48px;
-    margin-bottom: 30px;
-}
+h1 { font-size: 48px; margin-bottom: 30px; }
 
 input {
     width: 60%;
@@ -24,7 +22,6 @@ input {
     font-size: 20px;
     border-radius: 8px;
     border: none;
-    outline: none;
 }
 
 button {
@@ -38,18 +35,16 @@ pre {
     margin-top: 40px;
     white-space: pre-wrap;
     font-size: 18px;
-    line-height: 1.6;
     text-align: left;
     display: inline-block;
     max-width: 80%;
-    min-height: 120px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>超嚴謹搜尋器</h1>
+<h1>搜尋器</h1>
 
 <input id="q" placeholder="輸入問題...">
 <button onclick="go()">搜尋</button>
@@ -59,35 +54,15 @@ pre {
 <script>
 async function go() {
     let q = document.getElementById("q").value;
-    let out = document.getElementById("out");
 
-    if (!q.trim()) {
-        out.innerText = "請輸入問題";
-        return;
-    }
+    let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
+    let data = await res.json();
 
-    out.innerText = "搜尋中...";
-
-    try {
-        let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
-        let data = await res.json();
-
-        out.innerText =
-`搜尋結果：約 ${data.results} 筆
-
-可信度：${data.credibility}%
-
-${data.summary}
-
-────────────────────
-
-${data.answer}`;
-
-    } catch (err) {
-        out.innerText = "系統錯誤，請稍後再試";
-    }
+    document.getElementById("out").innerText =
+`${data.answer}`;
 }
 </script>
 
 </body>
 </html>
+```
