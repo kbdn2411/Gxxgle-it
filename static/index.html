@@ -42,6 +42,7 @@ pre {
     text-align: left;
     display: inline-block;
     max-width: 80%;
+    min-height: 120px;
 }
 </style>
 </head>
@@ -58,21 +59,33 @@ pre {
 <script>
 async function go() {
     let q = document.getElementById("q").value;
+    let out = document.getElementById("out");
 
-    let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
-    let data = await res.json();
+    if (!q.trim()) {
+        out.innerText = "請輸入問題";
+        return;
+    }
 
-    document.getElementById("out").innerText =
+    out.innerText = "搜尋中...";
+
+    try {
+        let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
+        let data = await res.json();
+
+        out.innerText =
 `搜尋結果：約 ${data.results} 筆
 
 可信度：${data.credibility}%
 
-AI摘要：
 ${data.summary}
 
 ────────────────────
 
 ${data.answer}`;
+
+    } catch (err) {
+        out.innerText = "系統錯誤，請稍後再試";
+    }
 }
 </script>
 
