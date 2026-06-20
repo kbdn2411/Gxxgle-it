@@ -99,7 +99,6 @@
                 let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
                 let data = await res.json();
 
-                // 這裡已經徹底拔除「AI摘要」那句話與變數，絕對不會再 undefined！
                 document.getElementById("out").innerText =
 `搜尋結果：約 ${data.results} 筆
 可信度：${data.credibility}%
