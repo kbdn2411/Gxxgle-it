@@ -49,13 +49,21 @@ document.getElementById("out").innerText = data.answer;
 <pre id="out"></pre>
 
 <script>
+<script>
 async function go() {
     let q = document.getElementById("q").value;
 
     let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
     let data = await res.json();
 
-    document.getElementById("out").innerText = data.answer;
+    document.getElementById("out").innerText =
+`搜尋結果：約 ${data.results} 筆
+
+可信度：${data.credibility}%
+
+────────────
+
+${data.answer}`;
 }
 </script>
 
