@@ -8,12 +8,15 @@
             background: #0f0f0f; 
             color: #00ffcc; 
             font-family: Arial, sans-serif; 
-            text-align: center; 
-            padding-top: 100px; 
-            margin: 0; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 確保所有東西水平置中 */
         }
         h1 { 
             font-size: 48px; 
+            margin-top: 100px;
             margin-bottom: 30px; 
         }
         .search-container { 
@@ -21,8 +24,9 @@
             justify-content: center; 
             align-items: center; 
             gap: 10px; 
+            width: 100%;
             max-width: 600px; 
-            margin: 0 auto; 
+            margin-bottom: 40px;
         }
         input { 
             flex: 1; 
@@ -47,11 +51,11 @@
             background: #00cca3; 
         }
         .result-container { 
-            margin: 40px auto 0 auto; 
-            text-align: left; 
-            max-width: 600px; 
             width: 100%;
+            max-width: 600px; 
             box-sizing: border-box;
+            text-align: left; 
+            padding: 0 10px;
         }
         pre { 
             font-size: 18px; 
@@ -61,6 +65,46 @@
             line-height: 1.6; 
             margin: 0; 
         }
+    </style>
+</head>
+<body>
+    <h1>超嚴謹搜尋器</h1>
+    
+    <div class="search-container">
+        <input id="q" placeholder="輸入問題...">
+        <button onclick="go()">搜尋</button>
+    </div>
+    
+    <div class="result-container">
+        <pre id="out"></pre>
+    </div>
+
+    <script>
+        async function go() {
+            var q = document.getElementById("q").value;
+            if (!q) { 
+                alert("請先輸入問題！"); 
+                return; 
+            }
+            try {
+                var res = await fetch("/search?q=" + encodeURIComponent(q));
+                var data = await res.json();
+                var aiSummary = data.summary ? data.summary : "本文字數過多，AI 懶得摘要。";
+                
+                var txt = "搜尋結果：約 " + data.results + " 筆\n" +
+                          "可信度：" + data.credibility + "%\n" +
+                          "AI摘要：" + aiSummary + "\n" +
+                          "──────────────────────────────────────────────────\n\n" +
+                          data.answer;
+                          
+                document.getElementById("out").innerText = txt;
+            } catch (error) {
+                document.getElementById("out").innerText = "連線失敗或後端 API 異常。";
+            }
+        }
+    </script>
+</body>
+</html>        }
     </style>
 </head>
 <body>
@@ -116,8 +160,6 @@
         button:hover {
             background: #00cca3;
         }
-
-        /* 搜尋結果區塊：強制作為區塊元素，排在輸入框正下方 */
         .result-container {
             margin-top: 40px;
             text-align: left;
