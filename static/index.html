@@ -59,13 +59,14 @@ pre {
 
 <script>
 async function go() {
+<script>
+async function go() {
     let q = document.getElementById("q").value;
 
     let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
     let data = await res.json();
 
-    document.getElementById("out").innerText =
-`${data.answer}`;
+    document.getElementById("out").innerText = data.answer;
 }
 </script>
 
