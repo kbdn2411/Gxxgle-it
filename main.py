@@ -305,7 +305,7 @@ def search(q: str = ""):
     }
 
 # ======================
-# UI（改用加號拼接字串，完美避開 Python/JavaScript 衝突）
+# UI
 # ======================
 @app.get("/", response_class=HTMLResponse)
 def home():
