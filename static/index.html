@@ -91,7 +91,33 @@ ${data.answer}`;
                 console.error(error);
             }
         }
-    </script>
+<script>
+async function go() {
+    let q = document.getElementById("q").value;
 
+    if (!q) {
+        alert("請先輸入問題！");
+        return;
+    }
+
+    try {
+        let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
+        let data = await res.json();
+
+        // 這裡已經把 ${data.summary} 徹底拿掉了，絕對不會再噴出 undefined！
+        document.getElementById("out").innerText =
+`搜尋結果：約 ${data.results} 筆
+
+可信度：${data.credibility}%
+
+────────────
+
+${data.answer}`;
+    } catch (error) {
+        document.getElementById("out").innerText = "連線失敗或後端 API 異常。";
+        console.error(error);
+    }
+}
+</script>
 </body>
 </html>
