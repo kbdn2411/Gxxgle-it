@@ -1,7 +1,7 @@
 import os
 import random
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 
 # 1. 修正：必須初始化 app 實例
 app = FastAPI()
@@ -82,14 +82,108 @@ def search(q: str = ""):
 # ======================
 # UI
 # ======================
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def home():
-    # 2. 提醒：啟動服務前，請確保你的專案目錄結構如下：
-    #    ├── main.py (此檔案)
-    #    └── static/
-    #        └── index.html (剛才寫好的前端網頁)
-    
-    if not os.path.exists("static/index.html"):
-        return {"error": "找不到 static/index.html 檔案，請確認目錄結構是否正確！"}
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>超嚴謹搜尋器</title>
+        <style>
+            body { 
+                background: #0f0f0f; 
+                color: #00ffcc; 
+                font-family: Arial, sans-serif; 
+                text-align: center; 
+                padding-top: 100px; 
+                margin: 0; 
+            }
+            h1 { 
+                font-size: 48px; 
+                margin-bottom: 30px; 
+            }
+            .search-container { 
+                display: flex; 
+                justify-content: center; 
+                align-items: center; 
+                gap: 10px; 
+                max-width: 70%; 
+                margin: 0 auto; 
+            }
+            input { 
+                flex: 1; 
+                padding: 16px; 
+                font-size: 20px; 
+                border-radius: 8px; 
+                border: none; 
+                outline: none; 
+            }
+            button { 
+                padding: 16px 24px; 
+                font-size: 18px; 
+                cursor: pointer; 
+                border-radius: 8px; 
+                border: none; 
+                background: #00ffcc; 
+                color: #0f0f0f; 
+                font-weight: bold; 
+                white-space: nowrap; 
+            }
+            button:hover { 
+                background: #00cca3; 
+            }
+            .result-container { 
+                margin-top: 40px; 
+                text-align: left; 
+                display: inline-block; 
+                width: 70%; 
+            }
+            pre { 
+                font-size: 18px; 
+                white-space: pre-wrap; 
+                word-wrap: break-word; 
+                font-family: Arial, sans-serif; 
+                line-height: 1.6; 
+                margin: 0; 
+            }
+        </style>
+    </head>
+    <body>
+        <h1>超嚴謹搜尋器</h1>
         
-    return FileResponse("static/index.html")
+        <div class="search-container">
+            <input id="q" placeholder="輸入問題...">
+            <button onclick="go()">搜尋</button>
+        </div>
+        
+        <div class="result-container">
+            <pre id="out"></pre>
+        </div>
+
+        <script>
+            async function go() {
+                let q = document.getElementById("q").value;
+                if (!q) { 
+                    alert("請先輸入問題！"); 
+                    return; 
+                }
+                try {
+                    let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
+                    let data = await res.json();
+                    
+                    // 這裡完全移除了 AI 摘要，只保留結果、可信度與廢文答案
+                    document.getElementById("out").innerText = 
+`搜尋結果：約 ${data.results} 筆
+可信度：${data.credibility}%
+
+──────────────────────────────────────────────────
+
+${data.answer}`;
+                } catch (error) {
+                    document.getElementById("out").innerText = "連線失敗或後端 API 異常。";
+                }
+            }
+        </script>
+    </body>
+    </html>"""
