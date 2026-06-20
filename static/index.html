@@ -1,6 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
+    <title>AI Search</title>
+</head>
+<body>
+
+<input id="q" placeholder="輸入查詢">
+<button onclick="go()">搜尋</button>
+
+<pre id="out"></pre>
+
+<script>
+async function go() {
+    let q = document.getElementById("q").value;
+
+    let res = await fetch("/search?q=" + encodeURIComponent(q));
+    let data = await res.json();
+
+    document.getElementById("out").innerText =
+        "搜尋結果：" + data.results + "\n\n" +
+        "可信度：" + data.credibility + "%\n\n" +
+        "-----------------\n\n" +
+        data.answer;
+}
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
 <meta charset="utf-8">
 <title>超嚴謹搜尋器</title>
 
