@@ -71,20 +71,11 @@ def search(q: str = ""):
     fake_results = random.randint(12345, 99999999)
     credibility = random.randint(1, 100)
 
-    # 這裡可以換成你喜歡的迷因摘要敘述
-    meme_summaries = [
-        "系統已透過量子瞎扯演算法生成最佳解答。",
-        "偵測到關鍵字，正在從互聯網垃圾堆中撈取最不靠譜的資訊...",
-        "分析成功！本結果由 42 號混凝土與義大利麵混合運算得出。",
-        "經過高精度胡言亂語分析器評估，本題答案如下：",
-        "系統已自動屏蔽正確答案，並為您隨機挑選了一篇精美廢文。"
-    ]
-
+    # 已將 summary 欄位完全刪除
     return {
         "query": q,
         "results": fake_results,
         "credibility": credibility,
-        "summary": random.choice(meme_summaries),  # 改成隨機迷因摘要，或是固定寫死一句話
         "answer": random.choice(answers)
     }
 
