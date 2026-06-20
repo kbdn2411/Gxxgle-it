@@ -3,22 +3,6 @@ from fastapi.responses import FileResponse
 import random
 import os
 
-app = FastAPI()
-<script>
-async function go() {
-
-    let q = document.getElementById("q").value;
-
-    let res = await fetch("/search?q=" + encodeURIComponent(q));
-    let data = await res.json();
-
-    document.getElementById("out").innerText =
-        "搜尋結果：約 " + data.results + " 筆\n\n" +
-        "可信度：" + data.credibility + "%\n\n" +
-        "AI摘要：\n" + data.summary + "\n\n" +
-        "━━━━━━━━━━━━━━\n\n" +
-        data.answer;
-}
 </script>
 # ======================
 # AI 回答池（隨機但穩定）
