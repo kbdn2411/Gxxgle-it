@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>搜尋器</title>
+    <title>超嚴謹搜尋器</title>
 
     <style>
         body {
@@ -11,6 +11,7 @@
             font-family: Arial, sans-serif;
             text-align: center;
             padding-top: 100px;
+            margin: 0;
         }
 
         h1 {
@@ -18,8 +19,18 @@
             margin-bottom: 30px;
         }
 
+        /* 搜尋列區塊，確保按鈕跟輸入框水平置中對齊 */
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            max-width: 70%;
+            margin: 0 auto;
+        }
+
         input {
-            width: 60%;
+            flex: 1;
             padding: 16px;
             font-size: 20px;
             border-radius: 8px;
@@ -30,45 +41,55 @@
         button {
             padding: 16px 24px;
             font-size: 18px;
-            margin-left: 10px;
             cursor: pointer;
             border-radius: 8px;
             border: none;
             background: #00ffcc;
             color: #0f0f0f;
             font-weight: bold;
+            white-space: nowrap;
         }
 
         button:hover {
             background: #00cca3;
         }
 
-        pre {
+        /* 搜尋結果區塊：強制作為區塊元素，排在輸入框正下方 */
+        .result-container {
             margin-top: 40px;
-            font-size: 18px;
             text-align: left;
             display: inline-block;
-            max-width: 70%;
-            white-space: pre-wrap; /* 讓長文本自動換行 */
+            width: 70%;
+        }
+
+        pre {
+            font-size: 18px;
+            white-space: pre-wrap; /* 讓廢文過長時自動換行 */
             word-wrap: break-word;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
         }
     </style>
 </head>
 
 <body>
 
-    <h1>搜尋器</h1>
+    <h1>超嚴謹搜尋器</h1>
 
-    <input id="q" placeholder="輸入問題...">
-    <button onclick="go()">搜尋</button>
+    <div class="search-container">
+        <input id="q" placeholder="輸入問題...">
+        <button onclick="go()">搜尋</button>
+    </div>
 
-    <br>
-    <pre id="out"></pre>
+    <div class="result-container">
+        <pre id="out"></pre>
+    </div>
 
     <script>
         async function go() {
             let q = document.getElementById("q").value;
-            
+
             if (!q) {
                 alert("請先輸入問題！");
                 return;
@@ -78,12 +99,12 @@
                 let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
                 let data = await res.json();
 
+                // 這裡已經徹底拔除「AI摘要」那句話與變數，絕對不會再 undefined！
                 document.getElementById("out").innerText =
 `搜尋結果：約 ${data.results} 筆
-
 可信度：${data.credibility}%
 
-────────────
+──────────────────────────────────────────────────
 
 ${data.answer}`;
             } catch (error) {
@@ -91,42 +112,7 @@ ${data.answer}`;
                 console.error(error);
             }
         }
-<script>
-async function go() {
-    let q = document.getElementById("q").value;
+    </script>
 
-    if (!q) {
-        alert("請先輸入問題！");
-        return;
-    }
-
-    try {
-        let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
-        let data = await res.json();
-
-        // 這裡面已經徹底沒有任何跟 summary 相關的字眼了！
-        document.getElementById("out").innerText =
-`搜尋結果：約 ${data.results} 筆
-
-可信度：${data.credibility}%
-
-────────────
-
-${data.answer}`;
-    } catch (error) {
-        document.getElementById("out").innerText = "連線失敗或後端 API 異常。";
-        console.error(error);
-    }
-}
-</script>
-────────────
-
-${data.answer}`;
-    } catch (error) {
-        document.getElementById("out").innerText = "連線失敗或後端 API 異常。";
-        console.error(error);
-    }
-}
-</script>
 </body>
 </html>
