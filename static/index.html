@@ -1,62 +1,84 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<title>搜尋器</title>
+    <meta charset="utf-8">
+    <title>搜尋器</title>
 
-<style>
-body {
-    background: #0f0f0f;
-    color: #00ffcc;
-    font-family: Arial;
-    text-align: center;
-    padding-top: 100px;
-}
+    <style>
+        body {
+            background: #0f0f0f;
+            color: #00ffcc;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 100px;
+        }
 
-h1 {
-    font-size: 48px;
-    margin-bottom: 30px;
-}
+        h1 {
+            font-size: 48px;
+            margin-bottom: 30px;
+        }
 
-input {
-    width: 60%;
-    padding: 16px;
-    font-size: 20px;
-    border-radius: 8px;
-    border: none;
-}
+        input {
+            width: 60%;
+            padding: 16px;
+            font-size: 20px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+        }
 
-button {
-    padding: 16px 24px;
-    font-size: 18px;
-    margin-left: 10px;
-    cursor: pointer;
-}
+        button {
+            padding: 16px 24px;
+            font-size: 18px;
+            margin-left: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+            background: #00ffcc;
+            color: #0f0f0f;
+            font-weight: bold;
+        }
 
-pre {
-document.getElementById("out").innerText = data.answer;
-}
-</style>
+        button:hover {
+            background: #00cca3;
+        }
+
+        pre {
+            margin-top: 40px;
+            font-size: 18px;
+            text-align: left;
+            display: inline-block;
+            max-width: 70%;
+            white-space: pre-wrap; /* 讓長文本自動換行 */
+            word-wrap: break-word;
+        }
+    </style>
 </head>
 
 <body>
 
-<h1>搜尋器</h1>
+    <h1>搜尋器</h1>
 
-<input id="q" placeholder="輸入問題...">
-<button onclick="go()">搜尋</button>
+    <input id="q" placeholder="輸入問題...">
+    <button onclick="go()">搜尋</button>
 
-<pre id="out"></pre>
+    <br>
+    <pre id="out"></pre>
 
-<script>
-<script>
-async function go() {
-    let q = document.getElementById("q").value;
+    <script>
+        async function go() {
+            let q = document.getElementById("q").value;
+            
+            if (!q) {
+                alert("請先輸入問題！");
+                return;
+            }
 
-    let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
-    let data = await res.json();
+            try {
+                let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
+                let data = await res.json();
 
-    document.getElementById("out").innerText =
+                document.getElementById("out").innerText =
 `搜尋結果：約 ${data.results} 筆
 
 可信度：${data.credibility}%
@@ -64,8 +86,12 @@ async function go() {
 ────────────
 
 ${data.answer}`;
-}
-</script>
+            } catch (error) {
+                document.getElementById("out").innerText = "連線失敗或後端 API 異常。";
+                console.error(error);
+            }
+        }
+    </script>
 
 </body>
 </html>
