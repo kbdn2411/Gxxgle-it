@@ -68,8 +68,8 @@ def search(q: str = ""):
         "summary": random.choice(ai_summaries),
         "answer": random.choice(answers)
     }
-
 @app.get("/", response_class=HTMLResponse)
 def home():
-    with open("index.html", "r", encoding="utf-8") as f:
+    # 加上 "static/" 首碼，這樣後端才讀得到檔案！
+    with open("static/index.html", "r", encoding="utf-8") as f:
         return f.read()
