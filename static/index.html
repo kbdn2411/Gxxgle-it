@@ -12,7 +12,7 @@
             padding: 0;
             display: flex;
             flex-direction: column;
-            align-items: center; /* 確保所有東西水平置中 */
+            align-items: center; 
         }
         h1 { 
             font-size: 48px; 
@@ -68,6 +68,7 @@
     </style>
 </head>
 <body>
+
     <h1>超嚴謹搜尋器</h1>
     
     <div class="search-container">
@@ -89,6 +90,7 @@
             try {
                 var res = await fetch("/search?q=" + encodeURIComponent(q));
                 var data = await res.json();
+                
                 var aiSummary = data.summary ? data.summary : "本文字數過多，AI 懶得摘要。";
                 
                 var txt = "搜尋結果：約 " + data.results + " 筆\n" +
@@ -103,120 +105,5 @@
             }
         }
     </script>
-</body>
-</html>        }
-    </style>
-</head>
-<body>
-    <h1>超嚴謹搜尋器</h1>
-    
-    <div class="search-container">
-        <input id="q" placeholder="輸入問題...">
-        <button onclick="go()">搜尋</button>
-    </div>
-    
-    <div class="result-container">
-        <pre id="out"></pre>
-    </div>
-
-    <script>
-        async function go() {
-            var q = document.getElementById("q").value;
-            if (!q) { 
-                alert("請先輸入問題！"); 
-                return; 
-            }
-            try {
-                var res = await fetch("/search?q=" + encodeURIComponent(q));
-                var data = await res.json();
-                var txt = "搜尋結果：約 " + data.results + " 筆\n" +
-                          "可信度：" + data.credibility + "%\n" +
-                          "──────────────────────────────────────────────────\n\n" +
-                          data.answer;
-                          
-                document.getElementById("out").innerText = txt;
-            } catch (error) {
-                document.getElementById("out").innerText = "連線失敗或後端 API 異常。";
-            }
-        }
-    </script>
-</body>
-</html>            border: none;
-            outline: none;
-        }
-
-        button {
-            padding: 16px 24px;
-            font-size: 18px;
-            cursor: pointer;
-            border-radius: 8px;
-            border: none;
-            background: #00ffcc;
-            color: #0f0f0f;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-
-        button:hover {
-            background: #00cca3;
-        }
-        .result-container {
-            margin-top: 40px;
-            text-align: left;
-            display: inline-block;
-            width: 70%;
-        }
-
-        pre {
-            font-size: 18px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-        }
-    </style>
-</head>
-
-<body>
-
-    <h1>超嚴謹搜尋器</h1>
-
-    <div class="search-container">
-        <input id="q" placeholder="輸入問題...">
-        <button onclick="go()">搜尋</button>
-    </div>
-
-    <div class="result-container">
-        <pre id="out"></pre>
-    </div>
-
-    <script>
-        async function go() {
-            let q = document.getElementById("q").value;
-
-            if (!q) {
-                alert("請先輸入問題！");
-                return;
-            }
-
-            try {
-                let res = await fetch(`/search?q=${encodeURIComponent(q)}`);
-                let data = await res.json();
-
-                document.getElementById("out").innerText =
-`搜尋結果：約 ${data.results} 筆
-可信度：${data.credibility}%
-
-──────────────────────────────────────────────────
-
-${data.answer}`;
-            } catch (error) {
-                document.getElementById("out").innerText = "連線失敗或後端 API 異常。";
-                console.error(error);
-            }
-        }
-    </script>
-
 </body>
 </html>
